@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Typing Test</title>
+  <meta name="description" content="Typing speed test in the browser with English and Turkish word lists: WPM, raw WPM, accuracy, consistency and a per-second chart.">
+  <meta name="theme-color" content="#0f172a">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Typing Test">
+  <meta property="og:description" content="Typing speed test in the browser with English and Turkish word lists: WPM, raw WPM, accuracy, consistency and a per-second chart.">
+  <meta property="og:url" content="https://celaldrg.github.io/typing-test/">
+  <meta property="og:image" content="https://celaldrg.github.io/typing-test/docs/screenshot.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Crect x='11' y='18' width='22' height='8' rx='4' fill='%2306b6d4'/%3E%3Crect x='36' y='12' width='5' height='20' rx='2.5' fill='%2322d3ee'/%3E%3Crect x='44' y='18' width='9' height='8' rx='4' fill='%23475569'/%3E%3Crect x='11' y='38' width='42' height='8' rx='4' fill='%23475569'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1 class="brand">
+        <svg class="brand__icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <rect class="brand__frame" x="2" y="2" width="60" height="60" rx="16"/>
+          <rect class="brand__typed" x="13" y="20" width="20" height="8" rx="4"/>
+          <rect class="brand__caret" x="36" y="14" width="5" height="20" rx="2.5"/>
+          <rect class="brand__rest" x="44" y="20" width="8" height="8" rx="4"/>
+          <rect class="brand__rest" x="13" y="38" width="39" height="8" rx="4"/>
+        </svg>
+        <span data-i18n="title">Typing Test</span>
+      </h1>
+      <button class="btn lang-toggle" id="ui-lang" type="button" data-i18n="langToggle" data-i18n-aria="langToggleLabel" data-i18n-title="langToggleLabel" aria-label="TR: switch to Turkish" title="TR: switch to Turkish">TR</button>
+    </header>
+
+    <main class="main">
+      <div class="config" id="config" role="group" aria-label="Test settings" data-i18n-aria="settings">
+        <div class="seg" role="group" aria-label="Test mode" data-i18n-aria="modeGroup">
+          <button class="seg__btn" type="button" data-mode="time" data-i18n="mode.time" aria-pressed="true">time</button>
+          <button class="seg__btn" type="button" data-mode="words" data-i18n="mode.words" aria-pressed="false">words</button>
+        </div>
+        <div class="seg" id="length-group" role="group" aria-label="Test length" data-i18n-aria="lengthGroup"></div>
+        <div class="seg" role="group" aria-label="Word list" data-i18n-aria="listGroup">
+          <button class="seg__btn" type="button" data-list="en" data-i18n="list.en" aria-pressed="true">English</button>
+          <button class="seg__btn" type="button" data-list="tr" data-i18n="list.tr" aria-pressed="false">Turkish</button>
+        </div>
+      </div>
+
+      <section class="test" id="test" aria-label="Typing test" data-i18n-aria="testLabel">
+        <div class="status">
+          <span class="status__counter" id="counter">30</span>
+          <span class="status__live" id="live">the clock starts with your first key</span>
+          <span class="status__best" id="best" hidden></span>
+        </div>
+        <div class="board is-blurred is-ready" id="board">
+          <div class="progress" aria-hidden="true"><div class="progress__bar" id="progress"></div></div>
+          <div class="words" id="words"></div>
+          <input class="field" id="field" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type the words shown" data-i18n-aria="inputLabel">
+          <p class="board__focus" aria-hidden="true" data-i18n="focusHint">Click or tap here to type</p>
+        </div>
+        <p class="note" id="tr-note" data-i18n="trNote" hidden>Turkish letters must match exactly: ı ≠ i, İ ≠ I</p>
+      </section>
+
+      <section class="results" id="results" aria-labelledby="results-title" hidden>
+        <div class="results__head">
+          <h2 class="results__title" id="results-title" data-i18n="results.title">Result</h2>
+          <p class="results__type" data-result="type"></p>
+          <p class="results__best" data-result="best" hidden></p>
+        </div>
+        <div class="results__grid">
+          <dl class="big-stats">
+            <div class="stat stat--big">
+              <dt data-i18n="unit.wpm">wpm</dt>
+              <dd data-result="wpm">0</dd>
+            </div>
+            <div class="stat stat--big">
+              <dt data-i18n="stat.accuracy">accuracy</dt>
+              <dd data-result="accuracy">0%</dd>
+            </div>
+          </dl>
+          <figure class="chart">
+            <div class="chart__box">
+              <canvas role="img" aria-label="Words per minute in each second of the test" data-i18n-aria="chart.label"></canvas>
+            </div>
+            <figcaption class="legend">
+              <span class="legend__item legend__item--wpm"><span class="legend__line"></span><span data-i18n="unit.wpm">wpm</span></span>
+              <span class="legend__item legend__item--raw"><span class="legend__line"></span><span data-i18n="stat.raw">raw</span></span>
+              <span class="legend__item legend__item--errors">
+                <svg class="legend__cross" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M2 2l6 6M8 2l-6 6"/></svg>
+                <span data-i18n="stat.errors">errors</span>
+              </span>
+            </figcaption>
+          </figure>
+        </div>
+        <dl class="small-stats">
+          <div class="stat">
+            <dt data-i18n="stat.raw">raw</dt>
+            <dd data-result="raw">0</dd>
+          </div>
+          <div class="stat">
+            <dt data-i18n="stat.consistency">consistency</dt>
+            <dd data-result="consistency">0%</dd>
+          </div>
+          <div class="stat">
+            <dt data-i18n="stat.errors">errors</dt>
+            <dd data-result="errors">0</dd>
+          </div>
+          <div class="stat" title="correct / incorrect / extra / missed" data-i18n-title="stat.charsHint">
+            <dt data-i18n="stat.chars">characters</dt>
+            <dd data-result="chars">0/0/0/0</dd>
+          </div>
+          <div class="stat">
+            <dt data-i18n="stat.time">time</dt>
+            <dd data-result="time">0 s</dd>
+          </div>
+        </dl>
+      </section>
+
+      <div class="actions">
+        <button class="btn btn--restart" id="restart" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v4h-4"/></svg>
+          <span id="restart-label" data-i18n="restart">Restart</span>
+        </button>
+        <p class="kbd-hint"><kbd>Tab</kbd> + <kbd>Enter</kbd> – <span id="restart-hint" data-i18n="restartHint">restart</span></p>
+      </div>
+    </main>
+
+    <footer class="footer">
+      MIT · <a href="https://github.com/celaldrg/typing-test" data-i18n="source">Source on GitHub</a>
+    </footer>
+  </div>
+</body>
+</html>
